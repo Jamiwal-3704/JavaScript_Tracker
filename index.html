@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>JavaScript Mastery Tracker</title>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #0d1117;
+        color: #c9d1d9;
+        font-family: "IBM Plex Sans", sans-serif;
+        padding: 24px 16px 60px;
+      }
+
+      .wrap {
+        max-width: 760px;
+        margin: 0 auto;
+      }
+
+      .term {
+        background: #010409;
+        border: 1px solid #30363d;
+        border-radius: 8px 8px 0 0;
+        padding: 10px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+      }
+      .dot.r {
+        background: #ff5f56;
+      }
+      .dot.y {
+        background: #ffbd2e;
+      }
+      .dot.g {
+        background: #27c93f;
+      }
+      .term span.path {
+        margin-left: 10px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        color: #8b949e;
+      }
+
+      .header {
+        border: 1px solid #30363d;
+        border-top: none;
+        background: #0d1117;
+        padding: 20px;
+      }
+
+      h1 {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 22px;
+        margin: 0 0 4px;
+        color: #f7df1e;
+        letter-spacing: -0.3px;
+      }
+      h1 span {
+        color: #8b949e;
+      }
+
+      .sub {
+        font-size: 13px;
+        color: #8b949e;
+        margin-bottom: 18px;
+      }
+
+      .progress-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+      }
+      #pct {
+        color: #f7df1e;
+        font-weight: 600;
+      }
+      #count {
+        color: #8b949e;
+      }
+
+      .bar-outer {
+        width: 100%;
+        height: 10px;
+        background: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 5px;
+        overflow: hidden;
+      }
+      .bar-inner {
+        height: 100%;
+        width: 0%;
+        background: #f7df1e;
+        transition: width 0.3s ease;
+      }
+
+      .stats-line {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #58a6ff;
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      .controls {
+        margin-top: 14px;
+        display: flex;
+        gap: 10px;
+      }
+      button.reset {
+        background: transparent;
+        border: 1px solid #30363d;
+        color: #8b949e;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        padding: 6px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      button.reset:hover {
+        border-color: #f85149;
+        color: #f85149;
+      }
+
+      .section {
+        border: 1px solid #30363d;
+        border-top: none;
+        background: #0d1117;
+      }
+      .section-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+        cursor: pointer;
+        background: #161b22;
+      }
+      .section-head:hover {
+        background: #1c2128;
+      }
+      .section-title {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 14px;
+        color: #e6edf3;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .idx {
+        color: #f7df1e;
+        font-weight: 600;
+      }
+      .section-mini {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 11px;
+        color: #8b949e;
+      }
+      .caret {
+        color: #8b949e;
+        font-size: 11px;
+        transition: transform 0.2s;
+      }
+      .section.open .caret {
+        transform: rotate(90deg);
+      }
+
+      .topics {
+        display: none;
+        padding: 4px 20px 14px 44px;
+      }
+      .section.open .topics {
+        display: block;
+      }
+
+      .topic {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 7px 0;
+        font-size: 14px;
+        line-height: 1.45;
+        border-bottom: 1px solid #161b22;
+      }
+      .topic:last-child {
+        border-bottom: none;
+      }
+      .topic input {
+        margin-top: 3px;
+        accent-color: #f7df1e;
+        width: 15px;
+        height: 15px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .topic label {
+        cursor: pointer;
+      }
+      .topic.done label {
+        color: #8b949e;
+        text-decoration: line-through;
+      }
+
+      .footer-bar {
+        border: 1px solid #30363d;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        background: #161b22;
+        padding: 14px 20px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 12px;
+        color: #8b949e;
+        display: flex;
+        justify-content: space-between;
+      }
+      #today-line {
+        color: #27c93f;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="term">
+        <div class="dot r"></div>
+        <div class="dot y"></div>
+        <div class="dot g"></div>
+        <span class="path">~/learning/javascript-roadmap.sh</span>
+      </div>
+
+      <div class="header">
+        <h1>JS<span>_</span>MASTERY.progress()</h1>
+        <div class="sub">
+          Full JavaScript curriculum, start to finish. Tick each topic as you
+          finish it — your progress is saved automatically.
+        </div>
+
+        <div class="progress-row">
+          <span id="pct">0%</span>
+          <span id="count">0 / 0 topics</span>
+        </div>
+        <div class="bar-outer"><div class="bar-inner" id="bar"></div></div>
+        <div class="stats-line" id="remaining">-- topics left</div>
+
+        <div class="controls">
+          <button class="reset" id="resetBtn">reset progress</button>
+          <button class="reset" id="expandBtn">expand all</button>
+          <button class="reset" id="collapseBtn">collapse all</button>
+        </div>
+      </div>
+
+      <div id="sections"></div>
+
+      <div class="footer-bar">
+        <span
+          >tip: expand a section, knock out its topics, move to the next</span
+        >
+        <span id="today-line"></span>
+      </div>
+    </div>
+
+    <script>
+      const CURRICULUM = [
+        {
+          title: "Introduction & Setup",
+          topics: [
+            "What JavaScript is & how engines/runtimes execute it",
+            "Setting up the environment (browser console, Node.js, VS Code)",
+            "Linking JS to HTML — script tag, defer vs async",
+            "console.log and basic debugging workflow",
+          ],
+        },
+        {
+          title: "Basics & Syntax",
+          topics: [
+            "Variables: var vs let vs const",
+            "Primitive vs reference data types",
+            "Type conversion & type coercion",
+            "Operators — arithmetic, comparison, logical, ternary",
+            "Nullish coalescing (??) and optional chaining (?.)",
+            "Template literals",
+            "Comments and code style conventions",
+          ],
+        },
+        {
+          title: "Control Flow",
+          topics: [
+            "if / else / else if",
+            "switch statements",
+            "for loop, while loop, do-while loop",
+            "for...in vs for...of",
+            "break, continue, labeled statements",
+          ],
+        },
+        {
+          title: "Functions",
+          topics: [
+            "Function declarations vs function expressions",
+            "Arrow functions and 'this' behavior differences",
+            "Default parameters & rest parameters",
+            "Function scope vs block scope",
+            "Closures — deep understanding with examples",
+            "IIFE (Immediately Invoked Function Expressions)",
+            "Higher-order functions",
+            "Callback functions",
+            "Recursion",
+          ],
+        },
+        {
+          title: "Objects",
+          topics: [
+            "Object literals — properties & methods",
+            "The 'this' keyword in different contexts",
+            "Object.keys, Object.values, Object.entries, Object.assign, Object.freeze",
+            "Getters and setters",
+            "Object destructuring",
+            "Spread & rest with objects",
+            "Prototypes & the prototype chain",
+            "Object.create and prototypal inheritance",
+          ],
+        },
+        {
+          title: "Arrays",
+          topics: [
+            "Array creation & basic methods (push, pop, shift, unshift)",
+            "Iteration: forEach, map, filter, reduce",
+            "Search & test: find, findIndex, some, every, includes",
+            "sort, splice, slice",
+            "Array destructuring",
+            "Spread operator with arrays",
+            "Array-like objects and converting them to arrays",
+          ],
+        },
+        {
+          title: "ES6+ Features",
+          topics: [
+            "let/const & block scoping recap",
+            "Destructuring (arrays & objects combined patterns)",
+            "Default, rest, and spread parameters",
+            "Modules — import/export (named vs default)",
+            "Classes (syntax overview, tie-in with OOP section)",
+            "Symbols",
+            "Map and Set data structures",
+            "Optional chaining & nullish coalescing in practice",
+          ],
+        },
+        {
+          title: "Object-Oriented JavaScript",
+          topics: [
+            "Constructor functions",
+            "Classes — fields, methods, constructor",
+            "Inheritance with extends & super",
+            "Static methods and static properties",
+            "Encapsulation using private fields (#field)",
+            "Polymorphism in JS classes",
+            "Mixins",
+          ],
+        },
+        {
+          title: "Asynchronous JavaScript",
+          topics: [
+            "Call stack, event loop, task queue & microtask queue",
+            "Callbacks and callback hell",
+            "Promises — then/catch/finally, chaining",
+            "Promise.all, Promise.race, Promise.allSettled, Promise.any",
+            "async/await syntax",
+            "Error handling in async code (try/catch with await)",
+            "setTimeout & setInterval",
+          ],
+        },
+        {
+          title: "Error Handling",
+          topics: [
+            "try / catch / finally",
+            "throw statement & custom error classes",
+            "Built-in error types (TypeError, RangeError, etc.)",
+          ],
+        },
+        {
+          title: "DOM Manipulation",
+          topics: [
+            "Selecting elements — querySelector, querySelectorAll, getElementById",
+            "Creating, modifying, and removing DOM elements",
+            "Event listeners & the event object",
+            "Event delegation, bubbling & capturing",
+            "Working with forms & basic validation",
+            "localStorage & sessionStorage",
+          ],
+        },
+        {
+          title: "Browser & Web APIs",
+          topics: [
+            "Fetch API & making AJAX-style requests",
+            "Working with JSON — parse & stringify",
+            "Timers in practice (debounced UI updates etc.)",
+            "Clipboard, Geolocation & other common Web APIs (overview)",
+          ],
+        },
+        {
+          title: "Advanced Concepts",
+          topics: [
+            "Execution context & hoisting",
+            "'this' binding rules — call, apply, bind",
+            "Currying",
+            "Debounce & throttle patterns",
+            "Memoization",
+            "Generators & iterators",
+            "Proxy & Reflect",
+            "WeakMap & WeakSet",
+            "Tagged template literals",
+          ],
+        },
+        {
+          title: "Modules & Tooling",
+          topics: [
+            "CommonJS vs ES Modules",
+            "npm basics — package.json, dependencies",
+            "Bundlers overview — Webpack/Vite (conceptual understanding)",
+            "Babel & transpilation concept",
+          ],
+        },
+        {
+          title: "Design Patterns in JS",
+          topics: [
+            "Module pattern",
+            "Singleton pattern",
+            "Observer pattern",
+            "Event emitter pattern",
+          ],
+        },
+        {
+          title: "Testing & Debugging",
+          topics: [
+            "Browser DevTools — breakpoints, watch, call stack",
+            "Console methods — table, group, trace, assert",
+            "Unit testing basics with Jest (writing your first tests)",
+          ],
+        },
+        {
+          title: "Node.js Basics (bridge)",
+          topics: [
+            "What Node.js is & how it differs from the browser",
+            "Modules — require vs import in Node",
+            "npm & package.json fundamentals",
+            "Basic file system operations (fs module)",
+            "Creating a simple HTTP server",
+          ],
+        },
+        {
+          title: "Practice & Projects",
+          topics: [
+            "Build a to-do list app (DOM + localStorage)",
+            "Build a calculator",
+            "Build a weather app using Fetch API",
+            "Build a quiz/timer app (async + DOM events)",
+            "Build a small REST API with Node.js",
+          ],
+        },
+      ];
+
+      const STORAGE_KEY = "js-mastery-checked";
+      let checkedIds = new Set();
+
+      function topicId(si, ti) {
+        return "s" + si + "t" + ti;
+      }
+
+      async function loadProgress() {
+        try {
+          const res = await window.storage.get(STORAGE_KEY, false);
+          if (res && res.value) {
+            checkedIds = new Set(JSON.parse(res.value));
+          }
+        } catch (e) {
+          checkedIds = new Set();
+        }
+        render();
+      }
+
+      async function saveProgress() {
+        try {
+          await window.storage.set(
+            STORAGE_KEY,
+            JSON.stringify([...checkedIds]),
+            false,
+          );
+        } catch (e) {}
+      }
+
+      function totalTopics() {
+        return CURRICULUM.reduce((sum, s) => sum + s.topics.length, 0);
+      }
+
+      function updateSummary() {
+        const total = totalTopics();
+        const done = checkedIds.size;
+        const pct = total ? Math.round((done / total) * 100) : 0;
+        document.getElementById("pct").textContent = pct + "%";
+        document.getElementById("count").textContent =
+          done + " / " + total + " topics";
+        document.getElementById("bar").style.width = pct + "%";
+        document.getElementById("remaining").textContent =
+          total - done + " topics left to cover";
+
+        const today = checkedIds.size;
+        document.getElementById("today-line").textContent =
+          done === total && total > 0 ? "all topics complete" : "";
+      }
+
+      function render() {
+        const container = document.getElementById("sections");
+        container.innerHTML = "";
+
+        CURRICULUM.forEach((section, si) => {
+          const secDone = section.topics.filter((_, ti) =>
+            checkedIds.has(topicId(si, ti)),
+          ).length;
+
+          const secEl = document.createElement("div");
+          secEl.className = "section";
+          secEl.dataset.idx = si;
+
+          const head = document.createElement("div");
+          head.className = "section-head";
+          head.innerHTML =
+            '<div class="section-title"><span class="idx">' +
+            String(si + 1).padStart(2, "0") +
+            "</span>" +
+            section.title +
+            "</div>" +
+            '<div style="display:flex;align-items:center;gap:12px;">' +
+            '<span class="section-mini">' +
+            secDone +
+            "/" +
+            section.topics.length +
+            "</span>" +
+            '<span class="caret">&#9656;</span></div>';
+          head.addEventListener("click", () => {
+            secEl.classList.toggle("open");
+          });
+
+          const topicsEl = document.createElement("div");
+          topicsEl.className = "topics";
+
+          section.topics.forEach((topicText, ti) => {
+            const id = topicId(si, ti);
+            const isDone = checkedIds.has(id);
+
+            const row = document.createElement("div");
+            row.className = "topic" + (isDone ? " done" : "");
+
+            const cb = document.createElement("input");
+            cb.type = "checkbox";
+            cb.id = id;
+            cb.checked = isDone;
+            cb.addEventListener("change", () => {
+              if (cb.checked) checkedIds.add(id);
+              else checkedIds.delete(id);
+              row.classList.toggle("done", cb.checked);
+              updateSectionMini(si);
+              updateSummary();
+              saveProgress();
+            });
+
+            const label = document.createElement("label");
+            label.setAttribute("for", id);
+            label.textContent = topicText;
+
+            row.appendChild(cb);
+            row.appendChild(label);
+            topicsEl.appendChild(row);
+          });
+
+          secEl.appendChild(head);
+          secEl.appendChild(topicsEl);
+          container.appendChild(secEl);
+        });
+
+        updateSummary();
+      }
+
+      function updateSectionMini(si) {
+        const section = CURRICULUM[si];
+        const secDone = section.topics.filter((_, ti) =>
+          checkedIds.has(topicId(si, ti)),
+        ).length;
+        const secEl = document.querySelector('.section[data-idx="' + si + '"]');
+        if (secEl) {
+          secEl.querySelector(".section-mini").textContent =
+            secDone + "/" + section.topics.length;
+        }
+      }
+
+      document
+        .getElementById("resetBtn")
+        .addEventListener("click", async () => {
+          if (confirm("Reset all progress? This clears every ticked topic.")) {
+            checkedIds = new Set();
+            await saveProgress();
+            render();
+          }
+        });
+      document.getElementById("expandBtn").addEventListener("click", () => {
+        document
+          .querySelectorAll(".section")
+          .forEach((s) => s.classList.add("open"));
+      });
+      document.getElementById("collapseBtn").addEventListener("click", () => {
+        document
+          .querySelectorAll(".section")
+          .forEach((s) => s.classList.remove("open"));
+      });
+
+      loadProgress();
+    </script>
+  </body>
+</html>
